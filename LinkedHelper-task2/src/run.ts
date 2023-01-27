@@ -1,19 +1,21 @@
-import ITaskExt from '../test/ITaskExt';
 import { IExecutor } from './Executor';
 import ITask from './Task';
 
-interface ITaskBody {
-    [key: number]: ITaskExt;
-}
-
 export default async function run(executor: IExecutor, queue: AsyncIterable<ITask>, maxThreads = 0) {
     maxThreads = Math.max(0, maxThreads);
+
+    // Можно импортировать такой тип присутствует ITaskExt.ts
+    // You can import this type from ITaskExt.ts
+    // type ITaskExt = ITask & { running?: true, completed?: true, acquired?: true };
+    interface ITaskBody {
+        [key: string]: ITask & { running?: true, completed?: true, acquired?: true };
+    }
 
     const cleanDate = JSON.parse(JSON.stringify(queue)).q.length === 0;
     const tasksArr: ITask[] = [];
     const taskBody: ITaskBody = {} ;
     let runningTask: Array<Promise<void>> = [];
-    let queueIndex = 0;
+    let queueIndex: number = 0;
 
     for await (const item of queue) {
         tasksArr.push(item);
